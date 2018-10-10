@@ -19,18 +19,20 @@ func TestTrie_Add_Delete(t *testing.T) {
   ret := trie.Delete("浙江省")
   if !ret {
     t.Errorf("Delete Error")
-    t.Failed()
+    t.Fail()
   }
   if trie.childLen() != 1 {
     t.Errorf("Unexpect children size: expect 1 found %d", trie.childLen())
-    t.Failed()
+    t.Fail()
   }
   ret = trie.Delete("浙江省杭州市")
   if !ret {
-    t.Errorf("Delete Error: expected true found %v", ret)
+   t.Errorf("Delete Error: expected true found %v", ret)
+   t.Fail()
   }
   if trie.childLen() != 0 {
-    t.Errorf("Unexpect children size: expect 0 found %d", trie.childLen())
+   t.Errorf("Unexpect children size: expect 0 found %d", trie.childLen())
+   t.Fail()
   }
 }
 

@@ -172,12 +172,13 @@ func (t *Trie) PrefixSearchKey(prefix string, offset int64, limit int64) (ret []
   return
 }
 
-// 不删除内存
+// 删除内存
 func (t *Trie) Delete(key string) bool {
   var prev []*Node
   rs := []rune(key)
   l := len(rs)
   cur := t.root
+  prev = append(prev, cur)
   for i, r := range rs {
     prev = append(prev, cur)
     next, ok := cur.children[r]
@@ -187,14 +188,12 @@ func (t *Trie) Delete(key string) bool {
     }
     if i == l - 1 && next.term {
       next.term = false
-      next.size -= 1
       break
     }
   }
   prev = append(prev, cur)
   reverse(prev)
-  for i := 0; i < l; i++ {
-    fmt.Println(string([]rune{prev[i].key}))
+  for i := 0; i < l + 1; i++ {
     if i > 0 {
       child := prev[i - 1].key
       if prev[i - 1].size == 0 {
