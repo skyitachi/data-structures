@@ -2,6 +2,7 @@ package trie
 
 import (
   "fmt"
+  "unicode/utf8"
 )
 
 type Node struct {
@@ -47,40 +48,42 @@ func NewTrie() *Trie {
   }
 }
 
-func (t *Trie) Add(key string, value interface{}){
+func (t *Trie) Add(key string, value interface{}) {
   var pre []*Node
   cur := t.root
-  rs := []rune(key)
-  l := len(rs)
-  created := false
-
-  for i, r := range rs {
+  for _, r := range key {
     pre = append(pre, cur)
     next, ok := cur.children[r]
     if !ok {
       cur.children[r] = NewNode(r)
-      if i == l - 1 {
-        cur.children[r].term = true
-        cur.children[r].size = 1
-        t.size += 1
-        created = true
-        break
-      }
       next = cur.children[r]
     }
     cur = next
   }
-  if created {
+  if !cur.term {
+    cur.term = true
+    cur.size += 1
     for _, node := range pre {
       node.size += 1
     }
   }
 }
 
-func (t *Trie) HasKey(key string) bool {
-  rs := []rune(key)
+func (t *Trie) Get(key string) (interface{}, bool) {
   cur := t.root
-  for _, r := range rs {
+  for _, r := range key {
+    next, ok := cur.children[r]
+    if !ok {
+      return nil, false
+    }
+    cur = next
+  }
+  return cur.value, true
+}
+
+func (t *Trie) HasKey(key string) bool {
+  cur := t.root
+  for _, r := range key {
     next, ok := cur.children[r]
     if !ok {
       return false
@@ -91,9 +94,8 @@ func (t *Trie) HasKey(key string) bool {
 }
 
 func (t *Trie) HasPrefix(prefix string) bool {
-  rs := []rune(prefix)
   cur := t.root
-  for _, r := range rs {
+  for _, r := range prefix {
     next, ok := cur.children[r]
     if !ok {
       return false
@@ -132,9 +134,8 @@ func (t *Trie) PrefixSearchKey(prefix string, offset int64, limit int64) (ret []
   if limit <= 0 || offset < 0 {
     return
   }
-  rs := []rune(prefix)
   cur := t.root
-  for _, r := range rs {
+  for _, r := range prefix {
     next, ok := cur.children[r]
     if !ok {
       return ret
@@ -175,21 +176,19 @@ func (t *Trie) PrefixSearchKey(prefix string, offset int64, limit int64) (ret []
 // 删除内存
 func (t *Trie) Delete(key string) bool {
   var prev []*Node
-  rs := []rune(key)
-  l := len(rs)
+  l := utf8.RuneCountInString(key)
   cur := t.root
   prev = append(prev, cur)
-  for i, r := range rs {
+  for _, r := range key {
     prev = append(prev, cur)
     next, ok := cur.children[r]
-    cur = next
     if !ok {
       return false
     }
-    if i == l - 1 && next.term {
-      next.term = false
-      break
-    }
+    cur = next
+  }
+  if cur.term {
+    cur.term = false
   }
   prev = append(prev, cur)
   reverse(prev)
@@ -206,7 +205,7 @@ func (t *Trie) Delete(key string) bool {
 }
 
 func (t *Trie) Size() int64 {
-  return t.size
+  return t.root.size
 }
 
 func (t *Trie) Root() *Node {
