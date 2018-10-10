@@ -4,3 +4,6 @@
 ### Objectives
 - List, Stack and Queue
 - Priority Queue
+
+### TODOS
+- [x] trie
